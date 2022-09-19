@@ -58,6 +58,7 @@
     "adonis5-swagger": "^1.4.1",
     "luxon": "^3.0.3",
     "mysql": "^2.18.1",
+    "phc-argon2": "^1.1.3",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21"
