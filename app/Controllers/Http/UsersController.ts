@@ -3,12 +3,13 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Hash from '@ioc:Adonis/Core/Hash'
 import jsonwebtoken from 'jsonwebtoken'
 import Env from '@ioc:Adonis/Core/Env'
+import User from '../../Models/User'
 
 export default class UsersController {
   // log in
   //
   //
-  public async login({ auth, request, response }) {
+  public async login({ request, response }) {
     const loginSchema = schema.create({
       email: schema.string(),
       password: schema.string(),
@@ -27,7 +28,7 @@ export default class UsersController {
       return response.send({ status: err.status, msg: err.message })
     }
 
-    const user = await Database.from('users').where('email', payload.email).first()
+    const user = await User.findBy('email', payload.email)
     const hashedPassword = await Hash.make(payload.password)
     if (!user || !(await Hash.verify(hashedPassword, payload.password)))
       return response.send({ status: 401, msg: 'Invalid Login Credentials' })
@@ -74,27 +75,21 @@ export default class UsersController {
         })
     }
 
-    return
+    const newUser = new User()
+    newUser.email = payload.email
+    newUser.username = payload.username
+    newUser.password = await Hash.make(payload.password)
 
-    await Database.table('users')
-      .insert({
-        username: payload.username,
-        password: await Hash.make(payload.password),
-        email: payload.email,
-      })
-      .then(() => {
-        const token = this.generateAccessToken(payload.username)
-        response.send({ status: 200, msg: 'Account created, Sucessfully!', token })
-      })
-      .catch((err) => {
-        console.log(`error when inserting a user: ${err}`)
-        response.send({ status: 409, msg: err.message })
-      })
+    console.log(await newUser.save())
+
+    if (newUser.$isPersisted) {
+      const token = this.generateAccessToken(payload.username)
+      response.send({ status: 200, msg: 'Account created, Sucessfully!', token })
+    } else {
+      response.send({ status: 409, msg: 'Something Went Wrong' })
+    }
   }
 
-  // generate token
-  //
-  //
   private generateAccessToken(username: string) {
     return jsonwebtoken.sign(username, Env.get('SECRET'))
   }
