@@ -51,12 +51,4 @@ const databaseConfig: DatabaseConfig = {
   },
 }
 
-console.log({
-  host: Env.get('MYSQL_HOST'),
-  port: Env.get('MYSQL_PORT'),
-  user: Env.get('MYSQL_USER'),
-  password: Env.get('MYSQL_PASSWORD', 'Root1194'),
-  database: Env.get('MYSQL_DB_NAME'),
-})
-
 export default databaseConfig

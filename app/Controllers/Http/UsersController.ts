@@ -1,9 +1,14 @@
 import { schema } from '@ioc:Adonis/Core/Validator'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Hash from '@ioc:Adonis/Core/Hash'
+import jsonwebtoken from 'jsonwebtoken'
+import Env from '@ioc:Adonis/Core/Env'
 
 export default class UsersController {
-  public async login({ request, response }) {
+  // log in
+  //
+  //
+  public async login({ auth, request, response }) {
     const loginSchema = schema.create({
       email: schema.string(),
       password: schema.string(),
@@ -22,15 +27,18 @@ export default class UsersController {
       return response.send({ status: err.status, msg: err.message })
     }
 
-    const user = await Database.from('users').where('email', payload.email)
-    console.log(user)
+    const user = await Database.from('users').where('email', payload.email).first()
     const hashedPassword = await Hash.make(payload.password)
     if (!user || !(await Hash.verify(hashedPassword, payload.password)))
       return response.send({ status: 401, msg: 'Invalid Login Credentials' })
 
-    return response.send({ staus: 200, msg: 'You have an account' })
+    const token = this.generateAccessToken(user.username)
+    return response.send({ status: 200, token, msg: 'Sucessfully logged In!' })
   }
 
+  // sign up
+  //
+  //
   public async signup({ request, response }) {
     const newUserSchema = schema.create({
       email: schema.string(),
@@ -51,8 +59,22 @@ export default class UsersController {
       return response.send({ status: err.status, msg: err.messages })
     }
 
-    // validate if users exists already or not
-    await Database.from('users').where('email', payload.email)
+    const user = await Database.from('users')
+      .where('email', payload.email)
+      .orWhere('username', payload.username)
+      .first()
+
+    if (user) {
+      if (user.email == payload.email)
+        return response.send({ status: 409, message: 'Email Already exists, please log in' })
+      else if (user.username == payload.username)
+        return response.send({
+          status: 409,
+          message: 'username is taken, please choose another one',
+        })
+    }
+
+    return
 
     await Database.table('users')
       .insert({
@@ -61,11 +83,19 @@ export default class UsersController {
         email: payload.email,
       })
       .then(() => {
-        response.send({ status: 200, msg: 'Account created, Sucessfully!' })
+        const token = this.generateAccessToken(payload.username)
+        response.send({ status: 200, msg: 'Account created, Sucessfully!', token })
       })
       .catch((err) => {
         console.log(`error when inserting a user: ${err}`)
-        response.send({ status: 409, msg: 'Account created, Sucessfully!' })
+        response.send({ status: 409, msg: err.message })
       })
+  }
+
+  // generate token
+  //
+  //
+  private generateAccessToken(username: string) {
+    return jsonwebtoken.sign(username, Env.get('SECRET'))
   }
 }
