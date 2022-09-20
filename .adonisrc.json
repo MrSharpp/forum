@@ -4,7 +4,6 @@
     "./commands",
     "@adonisjs/core/build/commands/index.js",
     "@adonisjs/repl/build/commands",
-    "adonis5-swagger/build/commands",
     "@adonisjs/lucid/build/commands"
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
@@ -16,12 +15,17 @@
   },
   "preloads": [
     "./start/routes",
-    "./start/kernel"
+    "./start/kernel",
+    {
+      "file": "./start/validator",
+      "environment": [
+        "web"
+      ]
+    }
   ],
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
-    "adonis5-swagger",
     "@adonisjs/lucid"
   ],
   "aceProviders": [

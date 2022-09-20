@@ -1,4 +1,4 @@
-import { schema } from '@ioc:Adonis/Core/Validator'
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Hash from '@ioc:Adonis/Core/Hash'
 import jsonwebtoken from 'jsonwebtoken'
@@ -31,10 +31,10 @@ export default class UsersController {
     const user = await User.findBy('email', payload.email)
     const hashedPassword = await Hash.make(payload.password)
     if (!user || !(await Hash.verify(hashedPassword, payload.password)))
-      return response.send({ status: 401, msg: 'Invalid Login Credentials' })
+      return response.status(404).send({ msg: 'Invalid Login Credentials' })
 
     const token = this.generateAccessToken(user.username)
-    return response.send({ status: 200, token, msg: 'Sucessfully logged In!' })
+    return response.send({ token, msg: 'Sucessfully logged In!' })
   }
 
   // sign up
@@ -57,7 +57,7 @@ export default class UsersController {
         },
       })
     } catch (err) {
-      return response.send({ status: err.status, msg: err.messages })
+      return response.status(err.status || 500).send({ msg: err.messages })
     }
 
     const user = await Database.from('users')
@@ -67,10 +67,9 @@ export default class UsersController {
 
     if (user) {
       if (user.email == payload.email)
-        return response.send({ status: 409, message: 'Email Already exists, please log in' })
+        return response.status(409).send({ message: 'Email Already exists, please log in' })
       else if (user.username == payload.username)
-        return response.send({
-          status: 409,
+        return response.status(409).send({
           message: 'username is taken, please choose another one',
         })
     }
@@ -80,14 +79,36 @@ export default class UsersController {
     newUser.username = payload.username
     newUser.password = await Hash.make(payload.password)
 
-    console.log(await newUser.save())
+    await newUser.save()
 
     if (newUser.$isPersisted) {
       const token = this.generateAccessToken(payload.username)
       response.send({ status: 200, msg: 'Account created, Sucessfully!', token })
     } else {
-      response.send({ status: 409, msg: 'Something Went Wrong' })
+      response.status(409).send({ msg: 'Something Went Wrong' })
     }
+  }
+
+  public async delete({ request, response }) {
+    const deleteSchema = schema.create({
+      email: schema.string(),
+      adminKey: schema.string({}, [rules.adminKey()]),
+    })
+
+    let payload
+
+    try {
+      payload = await request.validate({
+        schema: deleteSchema,
+        message: {
+          required: 'The {{ field }} is required ',
+        },
+      })
+    } catch (err) {
+      return response.status(err.status || 500).send({ msg: err.messages })
+    }
+
+    console.log(payload)
   }
 
   private generateAccessToken(username: string) {

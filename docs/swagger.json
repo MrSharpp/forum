@@ -1,0 +1,11 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Adsr docsa",
+    "version": "1.0.0",
+    "description": "My application with swagger docs"
+  },
+  "paths": {},
+  "components": {},
+  "tags": []
+}
