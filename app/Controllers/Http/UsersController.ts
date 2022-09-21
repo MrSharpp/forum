@@ -108,7 +108,12 @@ export default class UsersController {
       return response.status(err.status || 500).send({ msg: err.messages })
     }
 
-    console.log(payload)
+    const user = await User.findBy('email', payload.email)
+    await user?.delete()
+
+    if (user?.$isDeleted === false)
+      return response.status(500).send({ msg: 'Something went wrong' })
+    return response.status(200).send({ msg: 'Sucessfully deleted the email' })
   }
 
   private generateAccessToken(username: string) {
