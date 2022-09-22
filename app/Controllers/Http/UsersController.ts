@@ -6,9 +6,11 @@ import Env from '@ioc:Adonis/Core/Env'
 import User from '../../Models/User'
 
 export default class UsersController {
-  // log in
-  //
-  //
+  /**
+   *
+   * Login In
+   *
+   */
   public async login({ request, response }) {
     const loginSchema = schema.create({
       email: schema.string(),
@@ -37,9 +39,11 @@ export default class UsersController {
     return response.send({ token, msg: 'Sucessfully logged In!' })
   }
 
-  // sign up
-  //
-  //
+  /**
+   *
+   * Sign up
+   *
+   */
   public async signup({ request, response }) {
     const newUserSchema = schema.create({
       email: schema.string(),
@@ -89,6 +93,11 @@ export default class UsersController {
     }
   }
 
+  /**
+   *
+   * Delete User
+   *
+   */
   public async delete({ request, response }) {
     const deleteSchema = schema.create({
       email: schema.string(),
@@ -111,8 +120,7 @@ export default class UsersController {
     const user = await User.findBy('email', payload.email)
     await user?.delete()
 
-    if (user?.$isDeleted === false)
-      return response.status(500).send({ msg: 'Something went wrong' })
+    if (user?.$isDeleted === false) return response.status(404).send({ msg: 'User doesnt exist' })
     return response.status(200).send({ msg: 'Sucessfully deleted the email' })
   }
 
