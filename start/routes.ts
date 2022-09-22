@@ -24,8 +24,22 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
+// Organizations Routes
+Route.get('/orgs', 'OrgsController.index')
+Route.post('/orgs', 'OrgsController.create')
+Route.delete('/orgs/delete', 'OrgsController.delete')
+
+// Lobbies Routes
+Route.get('/lobby', 'LobbiesController.index')
+Route.post('/lobby', 'LobbiesController.create')
+Route.delete('/lobby/delete', 'LobbiesController.delete')
+
+// Posts Routes
+Route.get('/post', 'PostsController.index')
+Route.post('/post', 'PostsController.create')
+Route.delete('/post/delete', 'PostsController.delete')
+
+// user Authentication
 Route.post('/login', 'UsersController.login')
-
 Route.post('/signup', 'UsersController.signup')
-
-Route.delete('/delete', 'UsersController.delete')
+Route.delete('/user/delete', 'UsersController.delete')
