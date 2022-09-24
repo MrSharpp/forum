@@ -27,6 +27,7 @@ Route.get('/', async () => {
 // Organizations Routes
 Route.get('/orgs', 'OrgsController.index')
 Route.post('/orgs', 'OrgsController.create')
+Route.patch('/orgs', 'OrgsController.updateOrg')
 Route.delete('/orgs/delete', 'OrgsController.delete')
 
 // Lobbies Routes
